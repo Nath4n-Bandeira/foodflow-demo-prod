@@ -1,0 +1,182 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+  // Connection URLs are no longer supported in schema files in Prisma 7.
+  // Move DATABASE_URL (and other connection URLs) to prisma.config.ts and
+  // provide an adapter or accelerateUrl to the PrismaClient constructor.
+  // See: https://pris.ly/d/config-datasource and https://pris.ly/d/prisma7-client-config
+}
+
+model Dispensa {
+  id        Int                 @id @default(autoincrement())
+  nome      String              @db.VarChar(100)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt()
+  usuarioID String              @db.VarChar(36)
+  monitorarTemperatura Boolean @default(false) // Added temperature monitoring flag
+  usuario   Usuario             @relation(fields: [usuarioID], references: [id])
+  alimentos Alimentos[]
+  membros   UsuarioNaDispensa[]
+  Usuario   Usuario[]           @relation("UsuarioToDonoDispensa")
+  convites  DispensaInvite[]    // Added relation to DispensaInvite
+
+  @@map("Dispensa")
+  UsoAlimento UsoAlimento[]
+}
+
+model Alimentos {
+ id          Int        @id @default(autoincrement())
+  nome        String     @db.VarChar(100)
+  peso        Decimal    @db.Decimal(10, 2)
+  perecivel   Pereciveis @default(NÃO)
+  unidadeTipo Unidades   @default(KG)
+  validade    DateTime?  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  dispensa    Dispensa   @relation(fields: [dispensaId], references: [id])
+  dispensaId  Int
+
+  @@map("Alimento")
+  UsoAlimento UsoAlimento[]
+}
+
+enum Pereciveis {
+  NÃO
+  SIM
+}
+
+enum Unidades {
+  KG
+  PCT
+  REDE
+  DUZIA
+  LT
+  Unid
+}
+
+model Usuario {
+  id        String              @id @default(uuid()) @db.VarChar(36)
+  nome      String              @db.VarChar(60)
+  email     String              @db.VarChar(40)
+  senha     String              @db.VarChar(60)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  dispensa  UsuarioNaDispensa[]
+  donoDe    Dispensa[]          @relation("UsuarioToDonoDispensa")
+  Dispensa  Dispensa[]
+  mensagensEnviadas     Mensagem[]  @relation("MensagensEnviadas")
+  mensagensRecebidas    Mensagem[]  @relation("MensagensRecebidas")
+   
+  solicitacoesFriendRequest     FriendRequest[]  @relation("SolicitanteFriendRequest")
+  solicitacoesRecebidas         FriendRequest[]  @relation("DestinatarioFriendRequest")
+  amizadesIniciadas  Amizade[] @relation("AmizadeUsuario1")
+  amizadesRecebidas  Amizade[] @relation("AmizadeUsuario2")
+  convitesDispensaEnviados    DispensaInvite[] @relation("ConvidouDispensa") // Added relations to DispensaInvite
+  convitesDispensaRecebidos   DispensaInvite[] @relation("ConvidadoDispensa")
+
+  @@map("clientes")
+  UsoAlimento UsoAlimento[]
+}
+
+model Mensagem {
+  id              String   @id @default(uuid())
+  remetenteId     String
+  destinatarioId  String
+  conteudo        String
+  lida            Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  remetente       Usuario  @relation("MensagensEnviadas", fields: [remetenteId], references: [id])
+  destinatario    Usuario  @relation("MensagensRecebidas", fields: [destinatarioId], references: [id])
+
+  @@index([remetenteId])
+  @@index([destinatarioId])
+  @@index([createdAt])
+}
+
+model UsuarioNaDispensa {
+  id         String              @id @default(uuid()) @db.VarChar(36)
+  usuarioID  String @db.VarChar(36)
+  dispensaID Int
+
+  usuario  Usuario  @relation(fields: [usuarioID], references: [id])
+  dispensa Dispensa @relation(fields: [dispensaID], references: [id])
+
+  @@unique([usuarioID, dispensaID])
+}
+
+model UsoAlimento {
+  id              Int       @id @default(autoincrement())
+  alimento        Alimentos @relation(fields: [alimentoId], references: [id])
+  alimentoId      Int
+  quantidadeUsada Decimal   @db.Decimal(10, 2)
+  usuario         Usuario   @relation(fields: [usuarioId], references: [id])
+  usuarioId       String    @db.VarChar(36)
+  dispensa        Dispensa  @relation(fields: [dispensaId], references: [id])
+  dispensaId      Int
+  createdAt       DateTime  @default(now())
+
+  @@map("UsoAlimento")
+}
+
+model Amizade {
+  id        String   @id @default(uuid())
+  usuario1Id String   @db.VarChar(36)
+  usuario2Id String   @db.VarChar(36)
+  createdAt DateTime @default(now())
+
+  usuario1  Usuario  @relation("AmizadeUsuario1", fields: [usuario1Id], references: [id], onDelete: Cascade)
+  usuario2  Usuario  @relation("AmizadeUsuario2", fields: [usuario2Id], references: [id], onDelete: Cascade)
+
+  @@unique([usuario1Id, usuario2Id])
+  @@index([usuario1Id])
+  @@index([usuario2Id])
+  @@map("Amizade")
+}
+
+model FriendRequest {
+  id              String   @id @default(uuid())
+  solicitanteId   String   @db.VarChar(36)
+  destinatarioId  String   @db.VarChar(36)
+  status          String   @default("pending") 
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  solicitante     Usuario  @relation("SolicitanteFriendRequest", fields: [solicitanteId], references: [id])
+  destinatario    Usuario  @relation("DestinatarioFriendRequest", fields: [destinatarioId], references: [id])
+
+  @@unique([solicitanteId, destinatarioId])
+  @@index([destinatarioId])
+  @@index([status])
+}
+
+model DispensaInvite {
+  id              String   @id @default(uuid())
+  dispensaId      Int
+  convidadoPorId  String   @db.VarChar(36)
+  convidadoId     String   @db.VarChar(36)
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  dispensa        Dispensa @relation(fields: [dispensaId], references: [id], onDelete: Cascade)
+  convidadoPor    Usuario  @relation("ConvidouDispensa", fields: [convidadoPorId], references: [id])
+  convidado       Usuario  @relation("ConvidadoDispensa", fields: [convidadoId], references: [id])
+
+  @@unique([dispensaId, convidadoId])
+  @@index([convidadoId])
+  @@index([dispensaId])
+  @@index([status])
+  @@map("DispensaInvite")
+}

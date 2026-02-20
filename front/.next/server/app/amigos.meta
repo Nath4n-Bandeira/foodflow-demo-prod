@@ -1,0 +1,14 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/amigos/layout,_N_T_/amigos/page,_N_T_/amigos"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/amigos/__PAGE__",
+    "/amigos",
+    "/_index"
+  ]
+}

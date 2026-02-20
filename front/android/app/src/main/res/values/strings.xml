@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">fooodflow-project</string>
+    <string name="title_activity_main">fooodflow-project</string>
+    <string name="package_name">com.foodflow.app</string>
+    <string name="custom_url_scheme">com.foodflow.app</string>
+</resources>
