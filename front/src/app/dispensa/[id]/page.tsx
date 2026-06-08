@@ -1,5 +1,5 @@
 "use client"
-import { Search, Settings, BarChart3, History, ChevronLeft, ChevronRight } from "lucide-react"
+import { Search, Settings, BarChart3, History, ChevronLeft, ChevronRight, Camera, QrCode, BadgeDollarSign } from "lucide-react"
 import EditItemModal from "@/src/app/components/modals/editItemmodal"
 import { PantryAssistantModal } from "@/src/app/components/PantryAssistantModal"
 import { useEffect, useState, useCallback } from "react"
@@ -18,6 +18,8 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { useChatbotStore } from "@/src/app/context/ChatBotContext"
 import { usePantryAssistantStore } from "@/src/app/context/PantryAssistantContext"
+import { ProductRecognitionFlow } from "@/src/app/components/ProductRecognitionFlow"
+import { FiscalQrScannerModal } from "@/src/app/components/FiscalQrScannerModal"
 
 export default function DispensaPage() {
   const [alimentos, setAlimentos] = useState<AlimentosItf[]>([])
@@ -33,7 +35,8 @@ export default function DispensaPage() {
   const [mostrarUso, setMostrarUso] = useState(false)
   const [historico, setHistorico] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState("")
-  const [mostrarModal, setMostrarModal] = useState(false)
+  const [showCameraRecognition, setShowCameraRecognition] = useState(false)
+  const [showFiscalScanner, setShowFiscalScanner] = useState(false)
   const { addSelectedItem, removeSelectedItem, selectedItems } = useChatbotStore()
   const { setIsOpen: setPantryAssistantOpen, setDispensaId } = usePantryAssistantStore()
 
@@ -187,12 +190,39 @@ export default function DispensaPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
-                onClick={() => setMostrarModal(true)}
-                className="bg-[#2c2c2c] hover:bg-[#1e1e1e] text-white flex-1 sm:flex-none h-11 sm:h-10 text-sm sm:text-base"
+                onClick={() => {
+                  setDispensaId(Number(dispensaId))
+                  setPantryAssistantOpen(true)
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white flex-1 sm:flex-none h-11 sm:h-10 text-sm sm:text-base"
               >
                 <span className="hidden sm:inline">Adicione um item</span>
                 <span className="sm:hidden">Adicionar</span>
               </Button>
+              <Button
+                onClick={() => setShowCameraRecognition(true)}
+                className="bg-[#432dd7] hover:bg-[#3621b0] text-white flex-1 sm:flex-none h-11 sm:h-10 text-sm sm:text-base gap-2"
+                title="Fotografar embalagem para extrair informações"
+              >
+                <Camera className="w-4 h-4" />
+                <span className="hidden sm:inline">Foto</span>
+                <span className="sm:hidden">📸</span>
+              </Button>
+              <Button
+                onClick={() => setShowFiscalScanner(true)}
+                className="bg-[#0f766e] hover:bg-[#115e59] text-white flex-1 sm:flex-none h-11 sm:h-10 text-sm sm:text-base gap-2"
+                title="Ler QR code de nota fiscal"
+              >
+                <QrCode className="w-4 h-4" />
+                <span className="hidden sm:inline">Nota fiscal</span>
+                <span className="sm:hidden">QR</span>
+              </Button>
+              <Link href={`/precos?dispensaId=${dispensaId}`} className="flex-1 sm:flex-none">
+                <Button className="bg-[#f59e0b] hover:bg-[#d97706] text-white w-full h-11 sm:h-10">
+                  <BadgeDollarSign className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Preços</span>
+                </Button>
+              </Link>
               <Button
                 variant="outline"
                 className="border-[#e2e8f0] text-[#444444] bg-transparent h-11 sm:h-10"
@@ -593,6 +623,20 @@ export default function DispensaPage() {
           </div>
         )}
       </main>
+
+      <ProductRecognitionFlow
+        dispensaId={Number(dispensaId)}
+        isOpen={showCameraRecognition}
+        onClose={() => setShowCameraRecognition(false)}
+        onProductCreated={buscaDados}
+      />
+
+      <FiscalQrScannerModal
+        dispensaId={Number(dispensaId)}
+        isOpen={showFiscalScanner}
+        onClose={() => setShowFiscalScanner(false)}
+        onImported={buscaDados}
+      />
 
       <PantryAssistantModal />
     </div>

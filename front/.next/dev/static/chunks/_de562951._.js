@@ -64,7 +64,7 @@ const useFriendsStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node
         friendRequests: [],
         loadFriends: async ()=>{
             try {
-                const response = await fetch(`${("TURBOPACK compile-time value", "http://localhost:3001")}/amigos`, {
+                const response = await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/amigos`, {
                     headers: getAuthHeaders()
                 });
                 if (!response.ok) {
@@ -80,7 +80,7 @@ const useFriendsStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node
         },
         sendFriendRequest: async (targetUserId, targetUserName, targetUserEmail)=>{
             try {
-                const response = await fetch(`${("TURBOPACK compile-time value", "http://localhost:3001")}/friendRequests`, {
+                const response = await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/friendRequests`, {
                     method: "POST",
                     headers: getAuthHeaders(),
                     body: JSON.stringify({
@@ -111,7 +111,7 @@ const useFriendsStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node
         },
         acceptFriendRequest: async (requestId, friend)=>{
             try {
-                const response = await fetch(`${("TURBOPACK compile-time value", "http://localhost:3001")}/friendRequests/${requestId}/accept`, {
+                const response = await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/friendRequests/${requestId}/accept`, {
                     method: "POST",
                     headers: getAuthHeaders()
                 });
@@ -131,7 +131,7 @@ const useFriendsStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node
         },
         rejectFriendRequest: async (requestId)=>{
             try {
-                const response = await fetch(`${("TURBOPACK compile-time value", "http://localhost:3001")}/friendRequests/${requestId}/reject`, {
+                const response = await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/friendRequests/${requestId}/reject`, {
                     method: "POST",
                     headers: getAuthHeaders()
                 });
@@ -156,7 +156,7 @@ const useFriendsStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node
                 })),
         sendMessage: async (message)=>{
             try {
-                const response = await fetch(`${("TURBOPACK compile-time value", "http://localhost:3001")}/mensagens`, {
+                const response = await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/mensagens`, {
                     method: "POST",
                     headers: getAuthHeaders(),
                     body: JSON.stringify({
@@ -207,7 +207,7 @@ const useFriendsStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node
         },
         loadConversation: async (userId, friendId)=>{
             try {
-                const response = await fetch(`${("TURBOPACK compile-time value", "http://localhost:3001")}/mensagens/conversa/${friendId}`, {
+                const response = await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/mensagens/conversa/${friendId}`, {
                     headers: getAuthHeaders()
                 });
                 if (!response.ok) {
@@ -625,7 +625,7 @@ function DispensaInvitesModal() {
         try {
             setIsLoading(true);
             const token = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].get("token");
-            const response = await fetch(`${("TURBOPACK compile-time value", "http://localhost:3001")}/dispensaInvites/${cliente?.id}`, {
+            const response = await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/dispensaInvites/${cliente?.id}`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -643,7 +643,7 @@ function DispensaInvitesModal() {
     const handleAccept = async (invite)=>{
         try {
             const token = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].get("token");
-            const response = await fetch(`${("TURBOPACK compile-time value", "http://localhost:3001")}/dispensaInvites/${invite.id}/accept`, {
+            const response = await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/dispensaInvites/${invite.id}/accept`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -663,7 +663,7 @@ function DispensaInvitesModal() {
     const handleReject = async (invite)=>{
         try {
             const token = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].get("token");
-            const response = await fetch(`${("TURBOPACK compile-time value", "http://localhost:3001")}/dispensaInvites/${invite.id}/reject`, {
+            const response = await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/dispensaInvites/${invite.id}/reject`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -1308,7 +1308,7 @@ function AIPantryAssistant({ dispensaId, isOpen, onClose }) {
                     role: msg.role,
                     content: msg.content
                 }));
-            const response = await fetch(`${("TURBOPACK compile-time value", "http://localhost:3001")}/geminiPantry`, {
+            const response = await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/geminiPantry`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -1341,7 +1341,7 @@ function AIPantryAssistant({ dispensaId, isOpen, onClose }) {
                             validade: new Date(item.validade).toISOString()
                         }
                     };
-                    await fetch(`${("TURBOPACK compile-time value", "http://localhost:3001")}/alimentos/dispensa/${dispensaId}/alimentos`, {
+                    await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/alimentos/dispensa/${dispensaId}/alimentos`, {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
@@ -1358,7 +1358,7 @@ function AIPantryAssistant({ dispensaId, isOpen, onClose }) {
                 });
             } else if (aiResponse.action === "register_usage") {
                 // Primeiro, obtemtodos os alimentos na dispensa para corresponder pelo nome
-                const foodsResponse = await fetch(`${("TURBOPACK compile-time value", "http://localhost:3001")}/alimentos/dispensa/${dispensaId}/alimentos`, {
+                const foodsResponse = await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/alimentos/dispensa/${dispensaId}/alimentos`, {
                     headers: {
                         Authorization: "Bearer " + __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].get("token") || ""
                     }
@@ -1381,7 +1381,7 @@ function AIPantryAssistant({ dispensaId, isOpen, onClose }) {
                     throw new Error("Nenhum alimento encontrado na dispensa");
                 }
                 // registra o uso dos alimentos (2 dia pra arrumar oq tava bugando mano...)
-                const usageResponse = await fetch(`${("TURBOPACK compile-time value", "http://localhost:3001")}/alimentos/relatorio`, {
+                const usageResponse = await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/alimentos/relatorio`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -2840,8 +2840,8 @@ __turbopack_context__.s([
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = /*#__PURE__*/ __turbopack_context__.i("[project]/node_modules/next/dist/build/polyfills/process.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$google$2f$generative$2d$ai$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@google/generative-ai/dist/index.mjs [app-client] (ecmascript)");
 ;
-const genAI = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$google$2f$generative$2d$ai$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["GoogleGenerativeAI"](("TURBOPACK compile-time value", "AIzaSyBu7xIKEVTpAOIctC0HlZYPp6ZMJw2LQLc") || "");
-const API_URL = ("TURBOPACK compile-time value", "http://localhost:3001") || "http://localhost:3001";
+const genAI = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$google$2f$generative$2d$ai$2f$dist$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["GoogleGenerativeAI"](("TURBOPACK compile-time value", "AIzaSyCSATuxwnR_Jf2SJqkzyXwPLJ5tLm11NeY") || "");
+const API_URL = ("TURBOPACK compile-time value", "http://127.0.0.1:3001") || "http://localhost:3001";
 async function chatWithGemini(userMessage, selectedItems) {
     try {
         const response = await fetch(`${API_URL}/gemini`, {

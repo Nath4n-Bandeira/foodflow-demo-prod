@@ -81,6 +81,12 @@
       "namedRegex": "^/perfil(?:/)?$"
     },
     {
+      "page": "/precos",
+      "regex": "^/precos(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/precos(?:/)?$"
+    },
+    {
       "page": "/register",
       "regex": "^/register(?:/)?$",
       "routeKeys": {},

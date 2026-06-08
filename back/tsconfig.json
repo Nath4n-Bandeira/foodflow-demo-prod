@@ -4,6 +4,7 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "allowImportingTsExtensions": true,
+    "noEmit": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,

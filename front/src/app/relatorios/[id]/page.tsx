@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, History, Calendar, TrendingUp, ArrowLeft, Thermometer, Download, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react"
+import { Search, History, Calendar, TrendingUp, ArrowLeft, Thermometer, Download, AlertTriangle, ChevronLeft, ChevronRight, Truck, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,6 +14,8 @@ import { toast } from "sonner"
 import type { ClienteItf } from "@/src/app/utils/types/ClienteItf"
 import type { DispensaItf } from "@/src/app/utils/types/DispensaItf"
 import type { AlimentosItf } from "@/src/app/utils/types/AlimentosItf"
+import { RestockInsightsModal } from "@/src/app/components/RestockInsightsModal"
+import { HistoryDocumentModal } from "@/src/app/components/HistoryDocumentModal"
 
 export default function RelatoriosPage() {
   const params = useParams()
@@ -26,6 +28,8 @@ export default function RelatoriosPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [exporting, setExporting] = useState(false)
+  const [showRestockInsights, setShowRestockInsights] = useState(false)
+  const [showHistoryDocument, setShowHistoryDocument] = useState(false)
 
   // Temperature monitoring state
   const [temperature, setTemperature] = useState<number | null>(null)
@@ -249,57 +253,25 @@ export default function RelatoriosPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            <Button
+              className="bg-green-600 hover:bg-green-700 text-white h-11 sm:h-10"
+              onClick={() => setShowRestockInsights(true)}
+            >
+              <Truck className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Reposição</span>
+            </Button>
+            <Button
+              className="bg-green-600 hover:bg-green-700 text-white h-11 sm:h-10"
+              onClick={() => setShowHistoryDocument(true)}
+              disabled={historicoFiltrado.length === 0}
+            >
+              <FileText className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Gerar documento</span>
+            </Button>
           </div>
         </div>
 
-        {expiringItems.length > 0 && (
-          <Card className="bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 mb-4 sm:mb-8">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-amber-900 text-base sm:text-lg flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 flex-shrink-0" />
-                <span className="text-sm sm:text-base">Alimentos Próximos da Validade</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 sm:space-y-3">
-                {expiringItems.map((item) => {
-                  const validadeDate = new Date(item.validade!)
-                  const today = new Date()
-                  const daysUntilExpiry = Math.ceil((validadeDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-
-                  return (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between p-2 sm:p-3 bg-white rounded-lg border border-amber-200"
-                    >
-                      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                        <div
-                          className={`w-2 h-2 rounded-full flex-shrink-0 ${daysUntilExpiry <= 2 ? "bg-red-500 animate-pulse" : "bg-amber-500"}`}
-                        ></div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[#444444] font-medium text-sm sm:text-base truncate">{item.nome}</p>
-                          <p className="text-xs text-[#90a1b9]">
-                            {item.peso} {item.unidadeTipo}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right flex-shrink-0 ml-2">
-                        <p
-                          className={`text-xs sm:text-sm font-semibold ${daysUntilExpiry <= 2 ? "text-red-600" : "text-amber-600"}`}
-                        >
-                          {daysUntilExpiry === 0 ? "Hoje!" : daysUntilExpiry === 1 ? "Amanhã" : `${daysUntilExpiry}d`}
-                        </p>
-                        <p className="text-xs text-[#90a1b9] hidden sm:block">
-                          {validadeDate.toLocaleDateString("pt-BR")}
-                        </p>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+      
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-8">
           {/* Employees */}
@@ -638,6 +610,21 @@ export default function RelatoriosPage() {
           </Card>
         )}
       </main>
+
+      <RestockInsightsModal
+        isOpen={showRestockInsights}
+        onClose={() => setShowRestockInsights(false)}
+        alimentos={alimentos}
+        dispensaNome={dispensa?.nome || "sua dispensa"}
+      />
+
+      <HistoryDocumentModal
+        isOpen={showHistoryDocument}
+        onClose={() => setShowHistoryDocument(false)}
+        dispensaNome={dispensa?.nome || undefined}
+        historico={historicoFiltrado}
+        alimentos={alimentos}
+      />
     </div>
   )
 }

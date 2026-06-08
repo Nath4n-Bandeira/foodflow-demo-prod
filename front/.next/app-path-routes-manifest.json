@@ -7,6 +7,7 @@
   "/login/page": "/login",
   "/page": "/",
   "/perfil/page": "/perfil",
+  "/precos/page": "/precos",
   "/register/page": "/register",
   "/relatorios/[id]/page": "/relatorios/[id]"
 }

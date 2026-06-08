@@ -29,6 +29,8 @@ model Dispensa {
   membros   UsuarioNaDispensa[]
   Usuario   Usuario[]           @relation("UsuarioToDonoDispensa")
   convites  DispensaInvite[]    // Added relation to DispensaInvite
+  alimentosDoPost AlimentoDoPost[]
+  notasFiscais NotaFiscalCompra[]
 
   @@map("Dispensa")
   UsoAlimento UsoAlimento[]
@@ -83,6 +85,7 @@ model Usuario {
   amizadesRecebidas  Amizade[] @relation("AmizadeUsuario2")
   convitesDispensaEnviados    DispensaInvite[] @relation("ConvidouDispensa") // Added relations to DispensaInvite
   convitesDispensaRecebidos   DispensaInvite[] @relation("ConvidadoDispensa")
+  alimentosDoPost AlimentoDoPost[]
 
   @@map("clientes")
   UsoAlimento UsoAlimento[]
@@ -161,6 +164,31 @@ model FriendRequest {
   @@index([status])
 }
 
+model AlimentoDoPost {
+  id              Int      @id @default(autoincrement())
+  nome            String   @db.VarChar(150)
+  peso            Decimal? @db.Decimal(10, 2)
+  unidade         String   @db.VarChar(20) @default("KG")
+  validade        DateTime?
+  marca           String?  @db.VarChar(100)
+  ingredientes    String?
+  nutrientes      Json?
+  imagemUrl       String?
+  confianca       Decimal  @db.Decimal(3, 2) @default(0.95)
+  dispensaId      Int
+  usuarioId       String   @db.VarChar(36)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  dispensa        Dispensa @relation(fields: [dispensaId], references: [id], onDelete: Cascade)
+  usuario         Usuario  @relation(fields: [usuarioId], references: [id])
+
+  @@index([dispensaId])
+  @@index([usuarioId])
+  @@index([createdAt])
+  @@map("AlimentoDoPost")
+}
+
 model DispensaInvite {
   id              String   @id @default(uuid())
   dispensaId      Int
@@ -179,4 +207,47 @@ model DispensaInvite {
   @@index([dispensaId])
   @@index([status])
   @@map("DispensaInvite")
+}
+
+model NotaFiscalCompra {
+  id              Int      @id @default(autoincrement())
+  chaveAcesso     String?  @db.VarChar(80)
+  qrCodeUrl       String?
+  mercadoNome     String   @db.VarChar(160)
+  mercadoCnpj     String?  @db.VarChar(20)
+  dataCompra      DateTime?
+  valorTotal      Decimal? @db.Decimal(10, 2)
+  dispensaId      Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  dispensa        Dispensa @relation(fields: [dispensaId], references: [id], onDelete: Cascade)
+  itens           NotaFiscalItem[]
+
+  @@index([dispensaId])
+  @@index([chaveAcesso])
+  @@map("NotaFiscalCompra")
+}
+
+model NotaFiscalItem {
+  id              Int      @id @default(autoincrement())
+  notaFiscalId    Int
+  codigo          String?  @db.VarChar(30)
+  nomeOriginal    String   @db.VarChar(220)
+  nomeNormalizado String   @db.VarChar(220)
+  quantidade      Decimal  @db.Decimal(10, 3)
+  unidade         String   @db.VarChar(20)
+  valorUnitario   Decimal? @db.Decimal(10, 2)
+  valorTotal      Decimal? @db.Decimal(10, 2)
+  isAlimento      Boolean  @default(false)
+  motivoClasse    String?  @db.VarChar(180)
+  alimentoCriadoId Int?
+  createdAt       DateTime @default(now())
+
+  notaFiscal      NotaFiscalCompra @relation(fields: [notaFiscalId], references: [id], onDelete: Cascade)
+
+  @@index([notaFiscalId])
+  @@index([nomeNormalizado])
+  @@index([isAlimento])
+  @@map("NotaFiscalItem")
 }

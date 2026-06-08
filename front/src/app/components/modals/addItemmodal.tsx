@@ -91,7 +91,7 @@ export default function ItemModal({ dispensaId }: { dispensaId: number }) {
   return (
     <>
       <button
-        className="px-4 py-2 bg-[#2c2c2c] text-[#ffffff] rounded-md hover:bg-[#1e1e1e] font-medium"
+        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium"
         onClick={() => setIsOpen(true)}
       >
         Adicione um item
