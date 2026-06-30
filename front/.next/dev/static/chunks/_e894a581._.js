@@ -41,7 +41,7 @@ function UserSearchBox() {
                     setLoading(true);
                     setError(null);
                     try {
-                        const response = await fetch(`${("TURBOPACK compile-time value", "http://localhost:3001")}/clientes`);
+                        const response = await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/clientes`);
                         if (!response.ok) {
                             throw new Error("Erro ao carregar usuários");
                         }
@@ -306,7 +306,7 @@ function PendingFriendRequests() {
         try {
             setIsLoading(false);
             const token = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].get("token");
-            const response = await fetch(`${("TURBOPACK compile-time value", "http://localhost:3001")}/friendRequests/${cliente?.id}`, {
+            const response = await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/friendRequests/${cliente?.id}`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }

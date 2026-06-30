@@ -40,6 +40,8 @@ type FiscalQrScannerModalProps = {
   onImported: () => void
 }
 
+const API_TIMEOUT_MS = 20000
+
 export function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }: FiscalQrScannerModalProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const readerRef = useRef<BrowserQRCodeReader | null>(null)
@@ -194,17 +196,20 @@ export function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }
 
     setIsAnalyzing(true)
     setReceipt(null)
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS)
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/notasFiscais/analisar`, {
         method: "POST",
+        signal: controller.signal,
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + Cookies.get("token"),
         },
         body: JSON.stringify(source),
       })
-      const data = await response.json()
+      const data = await readJsonResponse(response)
 
       if (!response.ok) {
         throw new Error(data?.error ?? "Erro ao analisar nota fiscal.")
@@ -218,8 +223,9 @@ export function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }
       }
     } catch (error) {
       console.error("Erro ao analisar nota:", error)
-      toast.error(error instanceof Error ? error.message : "Erro ao analisar nota fiscal.")
+      toast.error(getApiErrorMessage(error, "Erro ao analisar nota fiscal."))
     } finally {
+      clearTimeout(timeout)
       setIsAnalyzing(false)
     }
   }
@@ -229,17 +235,20 @@ export function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }
     if (!source) return
 
     setIsImporting(true)
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS)
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/notasFiscais/importar`, {
         method: "POST",
+        signal: controller.signal,
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + Cookies.get("token"),
         },
         body: JSON.stringify({ ...source, dispensaId }),
       })
-      const data = await response.json()
+      const data = await readJsonResponse(response)
 
       if (!response.ok) {
         throw new Error(data?.error ?? "Erro ao importar nota fiscal.")
@@ -255,8 +264,9 @@ export function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }
       onClose()
     } catch (error) {
       console.error("Erro ao importar nota:", error)
-      toast.error(error instanceof Error ? error.message : "Erro ao importar nota fiscal.")
+      toast.error(getApiErrorMessage(error, "Erro ao importar nota fiscal."))
     } finally {
+      clearTimeout(timeout)
       setIsImporting(false)
     }
   }
@@ -484,6 +494,29 @@ function getCameraErrorMessage(error: unknown) {
   }
 
   return "Nao foi possivel acessar a camera."
+}
+
+async function readJsonResponse(response: Response) {
+  const text = await response.text()
+  if (!text) return null
+
+  try {
+    return JSON.parse(text)
+  } catch {
+    return { error: text }
+  }
+}
+
+function getApiErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof DOMException && error.name === "AbortError") {
+    return "A leitura demorou demais e foi cancelada. A SEFAZ pode estar lenta ou bloqueando a consulta."
+  }
+
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  return fallback
 }
 
 function Summary({ label, value }: { label: string; value: string }) {

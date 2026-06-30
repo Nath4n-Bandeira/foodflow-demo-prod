@@ -1,0 +1,41 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{fatec-ti}[2026/06/26 Minimal FATEC/SENAC article style]
+
+\RequirePackage[a4paper,left=3cm,right=2cm,top=3cm,bottom=2cm]{geometry}
+\RequirePackage{times}
+\RequirePackage{indentfirst}
+\RequirePackage{setspace}
+
+\onehalfspacing
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+
+\newcommand{\inst}[1]{\textsuperscript{#1}}
+\newcommand{\email}[1]{\\[0.2cm]\texttt{#1}}
+
+\newcommand{\address}[1]{\gdef\@address{#1}}
+\gdef\@address{}
+
+\renewcommand{\maketitle}{
+  \begin{center}
+    {\Large\bfseries \@title \par}
+    \vspace{0.6cm}
+    {\normalsize\bfseries \@author \par}
+    \vspace{0.35cm}
+    {\normalsize \@address \par}
+  \end{center}
+  \vspace{0.4cm}
+}
+
+\renewenvironment{abstract}{
+  \noindent\textbf{\textit{Abstract.}}\ \itshape
+}{
+  \par\vspace{0.4cm}
+}
+
+\newenvironment{resumo}{
+  \noindent\textbf{\textit{Resumo.}}\ \itshape
+}{
+  \par\vspace{0.4cm}
+}
+

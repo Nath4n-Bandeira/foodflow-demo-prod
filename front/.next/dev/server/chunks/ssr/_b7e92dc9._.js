@@ -2847,6 +2847,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e
 ;
 ;
 ;
+const API_TIMEOUT_MS = 20000;
 function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
     const videoRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(null);
     const readerRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRef"])(null);
@@ -2983,16 +2984,19 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
         }
         setIsAnalyzing(true);
         setReceipt(null);
+        const controller = new AbortController();
+        const timeout = setTimeout(()=>controller.abort(), API_TIMEOUT_MS);
         try {
             const response = await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/notasFiscais/analisar`, {
                 method: "POST",
+                signal: controller.signal,
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: "Bearer " + __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].get("token")
                 },
                 body: JSON.stringify(source)
             });
-            const data = await response.json();
+            const data = await readJsonResponse(response);
             if (!response.ok) {
                 throw new Error(data?.error ?? "Erro ao analisar nota fiscal.");
             }
@@ -3004,8 +3008,9 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
             }
         } catch (error) {
             console.error("Erro ao analisar nota:", error);
-            __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sonner$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toast"].error(error instanceof Error ? error.message : "Erro ao analisar nota fiscal.");
+            __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sonner$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toast"].error(getApiErrorMessage(error, "Erro ao analisar nota fiscal."));
         } finally{
+            clearTimeout(timeout);
             setIsAnalyzing(false);
         }
     }
@@ -3013,9 +3018,12 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
         const source = buildSourceBody();
         if (!source) return;
         setIsImporting(true);
+        const controller = new AbortController();
+        const timeout = setTimeout(()=>controller.abort(), API_TIMEOUT_MS);
         try {
             const response = await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/notasFiscais/importar`, {
                 method: "POST",
+                signal: controller.signal,
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: "Bearer " + __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].get("token")
@@ -3025,7 +3033,7 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                     dispensaId
                 })
             });
-            const data = await response.json();
+            const data = await readJsonResponse(response);
             if (!response.ok) {
                 throw new Error(data?.error ?? "Erro ao importar nota fiscal.");
             }
@@ -3038,8 +3046,9 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
             onClose();
         } catch (error) {
             console.error("Erro ao importar nota:", error);
-            __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sonner$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toast"].error(error instanceof Error ? error.message : "Erro ao importar nota fiscal.");
+            __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sonner$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["toast"].error(getApiErrorMessage(error, "Erro ao importar nota fiscal."));
         } finally{
+            clearTimeout(timeout);
             setIsImporting(false);
         }
     }
@@ -3075,12 +3084,12 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                         className: "h-5 w-5"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                        lineNumber: 285,
+                                        lineNumber: 295,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                    lineNumber: 284,
+                                    lineNumber: 294,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3091,7 +3100,7 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                             children: "Leitor de nota fiscal"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                            lineNumber: 288,
+                                            lineNumber: 298,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3099,19 +3108,19 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                             children: "QR code NFC-e para entrada automatica na dispensa"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                            lineNumber: 289,
+                                            lineNumber: 299,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                    lineNumber: 287,
+                                    lineNumber: 297,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                            lineNumber: 283,
+                            lineNumber: 293,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -3125,18 +3134,18 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                 className: "h-5 w-5"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                lineNumber: 300,
+                                lineNumber: 310,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                            lineNumber: 292,
+                            lineNumber: 302,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                    lineNumber: 282,
+                    lineNumber: 292,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3155,7 +3164,7 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                             playsInline: true
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                            lineNumber: 307,
+                                            lineNumber: 317,
                                             columnNumber: 15
                                         }, this),
                                         !isScanning && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3163,13 +3172,13 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                             children: "Camera inativa"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                            lineNumber: 309,
+                                            lineNumber: 319,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                    lineNumber: 306,
+                                    lineNumber: 316,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3185,20 +3194,20 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                                     className: "mr-2 h-4 w-4 animate-spin"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                                    lineNumber: 322,
+                                                    lineNumber: 332,
                                                     columnNumber: 37
                                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$scan$2d$line$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ScanLine$3e$__["ScanLine"], {
                                                     className: "mr-2 h-4 w-4"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                                    lineNumber: 322,
+                                                    lineNumber: 332,
                                                     columnNumber: 89
                                                 }, this),
                                                 isScanning ? "Parar" : "Camera"
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                            lineNumber: 316,
+                                            lineNumber: 326,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -3208,7 +3217,7 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                                     className: "mr-2 h-4 w-4"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                                    lineNumber: 326,
+                                                    lineNumber: 336,
                                                     columnNumber: 17
                                                 }, this),
                                                 "Imagem",
@@ -3219,19 +3228,19 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                                     onChange: (event)=>handleQrImage(event.target.files?.[0])
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                                    lineNumber: 328,
+                                                    lineNumber: 338,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                            lineNumber: 325,
+                                            lineNumber: 335,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                    lineNumber: 315,
+                                    lineNumber: 325,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3255,19 +3264,19 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                                         children: "Camera padrao"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                                        lineNumber: 351,
+                                                        lineNumber: 361,
                                                         columnNumber: 21
                                                     }, this) : videoDevices.map((device, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
                                                             value: device.deviceId,
                                                             children: device.label || `Camera ${index + 1}`
                                                         }, device.deviceId, false, {
                                                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                                            lineNumber: 354,
+                                                            lineNumber: 364,
                                                             columnNumber: 23
                                                         }, this))
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                                    lineNumber: 339,
+                                                    lineNumber: 349,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -3279,13 +3288,13 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                                     children: "Atualizar"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                                    lineNumber: 360,
+                                                    lineNumber: 370,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                            lineNumber: 338,
+                                            lineNumber: 348,
                                             columnNumber: 15
                                         }, this),
                                         selectedDeviceLabel && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3296,13 +3305,13 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                            lineNumber: 371,
+                                            lineNumber: 381,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                    lineNumber: 337,
+                                    lineNumber: 347,
                                     columnNumber: 13
                                 }, this),
                                 cameraMessage && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3310,7 +3319,7 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                     children: cameraMessage
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                    lineNumber: 376,
+                                    lineNumber: 386,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -3319,7 +3328,7 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                     children: "URL do QR code ou texto da nota"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                    lineNumber: 381,
+                                    lineNumber: 391,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("textarea", {
@@ -3330,7 +3339,7 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                     placeholder: "https://.../QrCodeNFce?p=..."
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                    lineNumber: 384,
+                                    lineNumber: 394,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -3343,26 +3352,26 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                             className: "mr-2 h-4 w-4 animate-spin"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                            lineNumber: 398,
+                                            lineNumber: 408,
                                             columnNumber: 30
                                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$file$2d$text$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__FileText$3e$__["FileText"], {
                                             className: "mr-2 h-4 w-4"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                            lineNumber: 398,
+                                            lineNumber: 408,
                                             columnNumber: 82
                                         }, this),
                                         "Analisar nota"
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                    lineNumber: 392,
+                                    lineNumber: 402,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                            lineNumber: 305,
+                            lineNumber: 315,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("section", {
@@ -3378,7 +3387,7 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                                 value: receipt.mercadoNome
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                                lineNumber: 407,
+                                                lineNumber: 417,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(Summary, {
@@ -3386,7 +3395,7 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                                 value: String(receipt.resumo.totalItens)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                                lineNumber: 408,
+                                                lineNumber: 418,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(Summary, {
@@ -3394,7 +3403,7 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                                 value: String(receipt.resumo.alimentos)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                                lineNumber: 409,
+                                                lineNumber: 419,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(Summary, {
@@ -3402,13 +3411,13 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                                 value: String(receipt.resumo.ignorados)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                                lineNumber: 410,
+                                                lineNumber: 420,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                        lineNumber: 406,
+                                        lineNumber: 416,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(ItemTable, {
@@ -3417,14 +3426,14 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                             className: "h-4 w-4 text-green-600"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                            lineNumber: 415,
+                                            lineNumber: 425,
                                             columnNumber: 25
                                         }, void 0),
                                         items: alimentos,
                                         emptyText: "Nenhum alimento identificado."
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                        lineNumber: 413,
+                                        lineNumber: 423,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(ItemTable, {
@@ -3433,7 +3442,7 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                             className: "h-4 w-4 text-slate-500"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                            lineNumber: 422,
+                                            lineNumber: 432,
                                             columnNumber: 25
                                         }, void 0),
                                         items: ignorados,
@@ -3441,13 +3450,13 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                         muted: true
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                        lineNumber: 420,
+                                        lineNumber: 430,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                lineNumber: 405,
+                                lineNumber: 415,
                                 columnNumber: 15
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "flex min-h-[420px] items-center justify-center rounded-md border border-dashed border-[#cbd5e1] text-center",
@@ -3458,7 +3467,7 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                             className: "mx-auto h-10 w-10 text-[#90a1b9]"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                            lineNumber: 431,
+                                            lineNumber: 441,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3466,29 +3475,29 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                             children: "Leia um QR code, envie uma imagem ou cole a URL da NFC-e para visualizar os itens antes de importar."
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                            lineNumber: 432,
+                                            lineNumber: 442,
                                             columnNumber: 19
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                    lineNumber: 430,
+                                    lineNumber: 440,
                                     columnNumber: 17
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                lineNumber: 429,
+                                lineNumber: 439,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                            lineNumber: 403,
+                            lineNumber: 413,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                    lineNumber: 304,
+                    lineNumber: 314,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3502,7 +3511,7 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                             children: "Cancelar"
                         }, void 0, false, {
                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                            lineNumber: 442,
+                            lineNumber: 452,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -3515,31 +3524,31 @@ function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }) {
                                     className: "mr-2 h-4 w-4 animate-spin"
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                    lineNumber: 451,
+                                    lineNumber: 461,
                                     columnNumber: 29
                                 }, this),
                                 "Enviar alimentos para dispensa"
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                            lineNumber: 445,
+                            lineNumber: 455,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                    lineNumber: 441,
+                    lineNumber: 451,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-            lineNumber: 281,
+            lineNumber: 291,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-        lineNumber: 280,
+        lineNumber: 290,
         columnNumber: 5
     }, this);
 }
@@ -3565,6 +3574,26 @@ function getCameraErrorMessage(error) {
     }
     return "Nao foi possivel acessar a camera.";
 }
+async function readJsonResponse(response) {
+    const text = await response.text();
+    if (!text) return null;
+    try {
+        return JSON.parse(text);
+    } catch  {
+        return {
+            error: text
+        };
+    }
+}
+function getApiErrorMessage(error, fallback) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+        return "A leitura demorou demais e foi cancelada. A SEFAZ pode estar lenta ou bloqueando a consulta.";
+    }
+    if (error instanceof Error) {
+        return error.message;
+    }
+    return fallback;
+}
 function Summary({ label, value }) {
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "rounded-md border border-[#e2e8f0] bg-[#f8fafc] px-3 py-2",
@@ -3574,7 +3603,7 @@ function Summary({ label, value }) {
                 children: label
             }, void 0, false, {
                 fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                lineNumber: 492,
+                lineNumber: 525,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3582,13 +3611,13 @@ function Summary({ label, value }) {
                 children: value
             }, void 0, false, {
                 fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                lineNumber: 493,
+                lineNumber: 526,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-        lineNumber: 491,
+        lineNumber: 524,
         columnNumber: 5
     }, this);
 }
@@ -3604,13 +3633,13 @@ function ItemTable({ title, icon, items, emptyText, muted }) {
                         children: title
                     }, void 0, false, {
                         fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                        lineNumber: 515,
+                        lineNumber: 548,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                lineNumber: 513,
+                lineNumber: 546,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3627,7 +3656,7 @@ function ItemTable({ title, icon, items, emptyText, muted }) {
                                         children: "Item"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                        lineNumber: 521,
+                                        lineNumber: 554,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -3635,7 +3664,7 @@ function ItemTable({ title, icon, items, emptyText, muted }) {
                                         children: "Qtd"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                        lineNumber: 522,
+                                        lineNumber: 555,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -3643,7 +3672,7 @@ function ItemTable({ title, icon, items, emptyText, muted }) {
                                         children: "Unit."
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                        lineNumber: 523,
+                                        lineNumber: 556,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -3651,18 +3680,18 @@ function ItemTable({ title, icon, items, emptyText, muted }) {
                                         children: "Classificacao"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                        lineNumber: 524,
+                                        lineNumber: 557,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                lineNumber: 520,
+                                lineNumber: 553,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                            lineNumber: 519,
+                            lineNumber: 552,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("tbody", {
@@ -3674,7 +3703,7 @@ function ItemTable({ title, icon, items, emptyText, muted }) {
                                             children: item.nomeOriginal
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                            lineNumber: 531,
+                                            lineNumber: 564,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -3686,7 +3715,7 @@ function ItemTable({ title, icon, items, emptyText, muted }) {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                            lineNumber: 532,
+                                            lineNumber: 565,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -3694,7 +3723,7 @@ function ItemTable({ title, icon, items, emptyText, muted }) {
                                             children: typeof item.valorUnitario === "number" ? formatCurrency(item.valorUnitario) : "-"
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                            lineNumber: 535,
+                                            lineNumber: 568,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -3702,13 +3731,13 @@ function ItemTable({ title, icon, items, emptyText, muted }) {
                                             children: item.motivoClasse
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                            lineNumber: 538,
+                                            lineNumber: 571,
                                             columnNumber: 19
                                         }, this)
                                     ]
                                 }, `${item.codigo ?? item.nomeOriginal}-${index}`, true, {
                                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                    lineNumber: 530,
+                                    lineNumber: 563,
                                     columnNumber: 17
                                 }, this)) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("tr", {
                                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -3717,34 +3746,34 @@ function ItemTable({ title, icon, items, emptyText, muted }) {
                                     children: emptyText
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                    lineNumber: 543,
+                                    lineNumber: 576,
                                     columnNumber: 17
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                                lineNumber: 542,
+                                lineNumber: 575,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                            lineNumber: 527,
+                            lineNumber: 560,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                    lineNumber: 518,
+                    lineNumber: 551,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-                lineNumber: 517,
+                lineNumber: 550,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/components/FiscalQrScannerModal.tsx",
-        lineNumber: 512,
+        lineNumber: 545,
         columnNumber: 5
     }, this);
 }

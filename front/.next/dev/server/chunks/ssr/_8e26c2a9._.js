@@ -2260,7 +2260,7 @@ function RelatoriosPage() {
         }
         async function buscaDispensa() {
             try {
-                const response = await fetch(`${("TURBOPACK compile-time value", "http://localhost:3001")}/dispensa/${dispensaId}`);
+                const response = await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/dispensa/${dispensaId}`);
                 const dados = await response.json();
                 setDispensa(dados);
                 setFuncionario(dados.membros || []);
@@ -2270,7 +2270,7 @@ function RelatoriosPage() {
         }
         async function buscaAlimentos() {
             try {
-                const response = await fetch(`${("TURBOPACK compile-time value", "http://localhost:3001")}/alimentos/dispensa/${dispensaId}/alimentos`);
+                const response = await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/alimentos/dispensa/${dispensaId}/alimentos`);
                 const dados = await response.json();
                 setAlimentos(dados);
             } catch (error) {
@@ -2279,7 +2279,7 @@ function RelatoriosPage() {
         }
         async function buscaHistorico() {
             try {
-                const response = await fetch(`${("TURBOPACK compile-time value", "http://localhost:3001")}/alimentos/relatorio/${dispensaId}`, {
+                const response = await fetch(`${("TURBOPACK compile-time value", "http://127.0.0.1:3001")}/alimentos/relatorio/${dispensaId}`, {
                     headers: {
                         Authorization: "Bearer " + __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$js$2d$cookie$2f$dist$2f$js$2e$cookie$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].get("token")
                     }

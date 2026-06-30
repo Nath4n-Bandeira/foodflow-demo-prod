@@ -1,0 +1,29 @@
+
+> fooodflow-project@0.1.0 dev
+> next dev
+
+   ▲ Next.js 16.0.0 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://26.220.118.57:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+Creating turbopack project { dir: 'E:\\flowmobile\\foodflow\\front', testMode: true }
+ ✓ Ready in 1125ms
+ GET / 200 in 2.8s (compile: 2.6s, render: 283ms)
+ GET /login 200 in 565ms (compile: 474ms, render: 91ms)
+ GET /register 200 in 431ms (compile: 356ms, render: 75ms)
+ GET /perfil 200 in 449ms (compile: 375ms, render: 74ms)
+ GET /dispensa/18 200 in 2.8s (compile: 2.4s, render: 330ms)
+ GET /dispensa/18 200 in 94ms (compile: 11ms, render: 82ms)
+ GET /dispensa/18 200 in 101ms (compile: 8ms, render: 92ms)
+ GET /dispensa/18 200 in 88ms (compile: 10ms, render: 78ms)
+ GET /dispensa/18 200 in 94ms (compile: 9ms, render: 85ms)
+ GET /dispensa/18 200 in 90ms (compile: 11ms, render: 79ms)
+ GET /dispensa/18 200 in 85ms (compile: 10ms, render: 74ms)
+ GET /relatorios/18 200 in 2.8s (compile: 2.6s, render: 166ms)
+ GET /relatorios/18 200 in 91ms (compile: 9ms, render: 83ms)
+ GET /relatorios/18 200 in 99ms (compile: 9ms, render: 90ms)
+ GET /precos?dispensaId=18 200 in 362ms (compile: 302ms, render: 60ms)
+ GET /amigos 200 in 384ms (compile: 319ms, render: 65ms)
+ GET / 200 in 86ms (compile: 16ms, render: 70ms)

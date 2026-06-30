@@ -15,6 +15,7 @@ import {
 
 const prisma = new PrismaClient()
 const router = Router()
+const FISCAL_PAGE_TIMEOUT_MS = 15000
 
 const sourceBaseSchema = z
   .object({
@@ -46,7 +47,7 @@ router.post("/analisar", verificaToken, async (req, res) => {
     res.status(200).json(buildReceiptResponse(receipt))
   } catch (error) {
     console.error("Erro ao analisar nota fiscal:", error)
-    res.status(400).json({ error: "Nao foi possivel ler a nota fiscal informada." })
+    res.status(400).json({ error: getReceiptErrorMessage(error) })
   }
 })
 
@@ -142,7 +143,7 @@ router.post("/importar", verificaToken, async (req, res) => {
     })
   } catch (error) {
     console.error("Erro ao importar nota fiscal:", error)
-    res.status(400).json({ error: "Nao foi possivel importar os itens da nota fiscal." })
+    res.status(400).json({ error: getReceiptErrorMessage(error) })
   }
 })
 
@@ -201,25 +202,133 @@ async function parseReceiptFromSource(source: { qrCodeUrl?: string; receiptText?
     return parseReceiptText(source.receiptText, source.qrCodeUrl)
   }
 
-  const url = source.qrCodeUrl ?? ""
+  const url = normalizeFiscalQrUrl(source.qrCodeUrl ?? "")
   if (!/^https?:\/\//i.test(url)) {
     throw new Error("QR code sem URL http/https")
   }
 
+  const firstPage = await fetchFiscalPage(url)
+  const pointedUrl = extractPointedFiscalUrl(firstPage.html, firstPage.finalUrl)
+  const page = pointedUrl && pointedUrl !== firstPage.finalUrl ? await fetchFiscalPage(pointedUrl) : firstPage
+  const receipt = parseReceiptHtml(page.html, page.finalUrl)
+
+  if (receipt.itens.length === 0) {
+    const fallbackUrl = extractPointedFiscalUrl(page.html, page.finalUrl)
+    if (fallbackUrl && fallbackUrl !== page.finalUrl) {
+      const fallbackPage = await fetchFiscalPage(fallbackUrl)
+      const fallbackReceipt = parseReceiptHtml(fallbackPage.html, fallbackPage.finalUrl)
+      if (fallbackReceipt.itens.length > 0) return fallbackReceipt
+    }
+
+    throw new Error("A pagina da nota abriu, mas os itens nao foram encontrados no HTML retornado.")
+  }
+
+  return receipt
+}
+
+async function fetchFiscalPage(url: string) {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), FISCAL_PAGE_TIMEOUT_MS)
+
   const response = await fetch(url, {
     redirect: "follow",
+    signal: controller.signal,
     headers: {
       "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       "user-agent": "Mozilla/5.0 FoodFlow/1.0 NFCe reader",
     },
-  })
+  }).finally(() => clearTimeout(timeout))
 
   if (!response.ok) {
     throw new Error(`Resposta fiscal invalida: ${response.status}`)
   }
 
-  const html = await response.text()
-  return parseReceiptHtml(html, url)
+  return {
+    html: await response.text(),
+    finalUrl: normalizeFiscalQrUrl(response.url || url),
+  }
+}
+
+function normalizeFiscalQrUrl(value: string) {
+  const raw = value.trim()
+  if (!raw) return raw
+
+  let parsed: URL
+  try {
+    parsed = new URL(raw)
+  } catch {
+    return raw
+  }
+
+  const lowerHost = parsed.hostname.toLowerCase()
+  const lowerPath = parsed.pathname.toLowerCase()
+
+  if (lowerHost.includes("sefaz.rs.gov.br") && lowerPath.includes("/nfce/nfce-com.aspx")) {
+    const qrPayload = parsed.searchParams.get("p")
+    if (qrPayload) {
+      return `https://dfe-portal.svrs.rs.gov.br/Dfe/QrCodeNFce?p=${qrPayload}`
+    }
+  }
+
+  return raw
+}
+
+function extractPointedFiscalUrl(html: string, baseUrl: string) {
+  const directDfeMatch = html.match(/https?:\/\/dfe-portal\.svrs\.rs\.gov\.br\/Dfe\/QrCodeNFce\?p=[^"' <>\r\n]+/i)
+  if (directDfeMatch?.[0]) {
+    return decodeHtmlUrl(directDfeMatch[0])
+  }
+
+  const metaRefreshMatch = html.match(/<meta[^>]+http-equiv=["']?refresh["']?[^>]+content=["'][^"']*url=([^"']+)["']/i)
+  if (metaRefreshMatch?.[1]) {
+    return normalizeFiscalQrUrl(resolveFiscalUrl(metaRefreshMatch[1], baseUrl))
+  }
+
+  const hrefMatches = [...html.matchAll(/(?:href|src|action)=["']([^"']+)["']/gi)]
+  for (const match of hrefMatches) {
+    const candidate = decodeHtmlUrl(match[1] ?? "")
+    if (/QrCodeNFce|NFCE-COM\.aspx/i.test(candidate)) {
+      return normalizeFiscalQrUrl(resolveFiscalUrl(candidate, baseUrl))
+    }
+  }
+
+  return normalizeFiscalQrUrl(baseUrl)
+}
+
+function resolveFiscalUrl(value: string, baseUrl: string) {
+  try {
+    return new URL(decodeHtmlUrl(value), baseUrl).toString()
+  } catch {
+    return value
+  }
+}
+
+function decodeHtmlUrl(value: string) {
+  return value
+    .replace(/&amp;/g, "&")
+    .replace(/&#x2F;/gi, "/")
+    .replace(/&#47;/g, "/")
+    .trim()
+}
+
+function getReceiptErrorMessage(error: unknown) {
+  if (error instanceof DOMException && error.name === "AbortError") {
+    return "A consulta da SEFAZ demorou demais e foi cancelada. Tente novamente ou cole o texto da nota fiscal."
+  }
+
+  if (error instanceof Error) {
+    if (error.name === "AbortError") {
+      return "A consulta da SEFAZ demorou demais e foi cancelada. Tente novamente ou cole o texto da nota fiscal."
+    }
+
+    if (error.message.includes("fetch failed")) {
+      return "Nao foi possivel acessar a pagina da SEFAZ pelo servidor. Verifique a URL do QR code ou tente colar o texto da nota."
+    }
+
+    return error.message
+  }
+
+  return "Nao foi possivel ler a nota fiscal informada."
 }
 
 function buildReceiptResponse(receipt: ParsedReceipt) {
