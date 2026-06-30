@@ -1,6 +1,0 @@
-{
-  "/dispensa/[id]/page": "app/dispensa/[id]/page.js",
-  "/page": "app/page.js",
-  "/perfil/page": "app/perfil/page.js",
-  "/precos/page": "app/precos/page.js"
-}
