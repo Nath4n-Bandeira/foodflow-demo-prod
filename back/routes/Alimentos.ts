@@ -118,10 +118,19 @@ router.delete("/:id", verificaToken, async (req, res) => {
   const { id } = req.params
 
   try {
-    const carro = await prisma.alimentos.delete({
-      where: { id: Number(id) },
+    const alimentoId = Number(id)
+
+    const alimento = await prisma.$transaction(async (tx) => {
+      await tx.usoAlimento.deleteMany({
+        where: { alimentoId },
+      })
+
+      return tx.alimentos.delete({
+        where: { id: alimentoId },
+      })
     })
-    res.status(200).json(carro)
+
+    res.status(200).json(alimento)
   } catch (error) {
     res.status(400).json({ erro: error })
   }

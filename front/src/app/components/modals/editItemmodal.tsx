@@ -55,7 +55,7 @@ export default function EditItemModal({ id, dispensaId }: { id: number, dispensa
   return (
     <>
       <button
-        className="px-4 py-2 bg-[#2c2c2c] text-[#ffffff] rounded-md hover:bg-[#1e1e1e] font-medium"
+        className="inline-flex h-10 items-center justify-center rounded-md border border-green-200 bg-white px-4 text-sm font-semibold text-green-700 transition-colors hover:bg-green-50"
         onClick={() => setIsOpen(true)}
       >
         Editar

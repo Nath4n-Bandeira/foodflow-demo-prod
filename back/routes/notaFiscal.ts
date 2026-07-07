@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client"
+import { Pereciveis, PrismaClient } from "@prisma/client"
 import { Router } from "express"
 import { z } from "zod"
 import { verificaToken } from "../middlewares/verificaToken"
@@ -31,6 +31,7 @@ const sourceSchema = sourceBaseSchema
 const importSchema = sourceBaseSchema
   .extend({
     dispensaId: z.number(),
+    forceImportItemIndexes: z.array(z.number().int().nonnegative()).optional().default([]),
   })
   .refine((data) => data.qrCodeUrl || data.receiptText, {
     message: "Informe uma URL de QR code ou o texto da nota fiscal.",
@@ -59,7 +60,8 @@ router.post("/importar", verificaToken, async (req, res) => {
 
   try {
     const receipt = await parseReceiptFromSource(parsed.data)
-    const foodItems = receipt.itens.filter((item) => item.isAlimento)
+    const forcedIndexes = new Set(parsed.data.forceImportItemIndexes)
+    const importedItems = receipt.itens.filter((item, index) => item.isAlimento || forcedIndexes.has(index))
 
     if (receipt.chaveAcesso) {
       const previous = await prisma.notaFiscalCompra.findFirst({
@@ -96,17 +98,19 @@ router.post("/importar", verificaToken, async (req, res) => {
 
       let addedFoods = 0
 
-      for (const item of receipt.itens) {
+      for (const [index, item] of receipt.itens.entries()) {
         let alimentoCriadoId: number | undefined
+        const shouldImportAsFood = item.isAlimento || forcedIndexes.has(index)
 
-        if (item.isAlimento) {
+        if (shouldImportAsFood) {
           const amount = buildInventoryAmount(item)
+          const perecivel = inferPerecivel(item.nomeOriginal)
           const alimento = await tx.alimentos.create({
             data: {
               nome: item.nomeOriginal,
               peso: amount.peso,
               unidadeTipo: amount.unidadeTipo as any,
-              perecivel: inferPerecivel(item.nomeOriginal) as any,
+              ...(perecivel ? { perecivel } : {}),
               dispensaId: parsed.data.dispensaId,
             },
           })
@@ -124,21 +128,21 @@ router.post("/importar", verificaToken, async (req, res) => {
             unidade: item.unidade,
             valorUnitario: item.valorUnitario,
             valorTotal: item.valorTotal,
-            isAlimento: item.isAlimento,
-            motivoClasse: item.motivoClasse,
+            isAlimento: shouldImportAsFood,
+            motivoClasse: item.isAlimento ? item.motivoClasse : `${item.motivoClasse}; inserido manualmente pelo usuario`,
             alimentoCriadoId,
           },
         })
       }
 
       return { compra, addedFoods }
-    })
+    }, { maxWait: 10000, timeout: 30000 })
 
     res.status(201).json({
       duplicada: false,
       notaFiscalId: saved.compra.id,
       adicionados: saved.addedFoods,
-      ignorados: receipt.itens.length - foodItems.length,
+      ignorados: receipt.itens.length - importedItems.length,
       receipt: buildReceiptResponse(receipt),
     })
   } catch (error) {
@@ -347,8 +351,8 @@ function inferPerecivel(name: string) {
   return ["carne", "leite", "iogurte", "queijo", "sanduiche", "pizza", "hamburguer", "salame"].some((term) =>
     normalized.includes(term),
   )
-    ? "SIM"
-    : "NÃƒO"
+    ? Pereciveis.SIM
+    : undefined
 }
 
 function toNumber(value: any) {

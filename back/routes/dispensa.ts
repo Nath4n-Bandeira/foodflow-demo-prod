@@ -186,13 +186,51 @@ router.post("/:id/membro", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   const { id } = req.params
   try {
-    await prisma.alimentos.deleteMany({
-      where: { dispensaId: Number(id) },
+    const dispensaId = Number(id)
+
+    const dispensa = await prisma.$transaction(async (tx) => {
+      const notas = await tx.notaFiscalCompra.findMany({
+        where: { dispensaId },
+        select: { id: true },
+      })
+
+      const notaFiscalIds = notas.map((nota) => nota.id)
+
+      if (notaFiscalIds.length > 0) {
+        await tx.notaFiscalItem.deleteMany({
+          where: { notaFiscalId: { in: notaFiscalIds } },
+        })
+      }
+
+      await tx.notaFiscalCompra.deleteMany({
+        where: { dispensaId },
+      })
+
+      await tx.usoAlimento.deleteMany({
+        where: { dispensaId },
+      })
+
+      await tx.alimentoDoPost.deleteMany({
+        where: { dispensaId },
+      })
+
+      await tx.alimentos.deleteMany({
+        where: { dispensaId },
+      })
+
+      await tx.dispensaInvite.deleteMany({
+        where: { dispensaId },
+      })
+
+      await tx.usuarioNaDispensa.deleteMany({
+        where: { dispensaID: dispensaId },
+      })
+
+      return tx.dispensa.delete({
+        where: { id: dispensaId },
+      })
     })
 
-    const dispensa = await prisma.dispensa.delete({
-      where: { id: Number(id) },
-    })
     res.status(204).json(dispensa)
   } catch (error) {
     res.status(400).json(error)

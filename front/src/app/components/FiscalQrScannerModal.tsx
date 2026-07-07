@@ -19,6 +19,10 @@ type ReceiptItem = {
   motivoClasse: string
 }
 
+type SelectableReceiptItem = ReceiptItem & {
+  receiptIndex?: number
+}
+
 type ReceiptPreview = {
   chaveAcesso?: string
   mercadoNome: string
@@ -52,6 +56,7 @@ export function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }
   const [isLoadingDevices, setIsLoadingDevices] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
+  const [forceImportItemIndexes, setForceImportItemIndexes] = useState<Set<number>>(new Set())
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([])
   const [selectedDeviceId, setSelectedDeviceId] = useState("")
   const [cameraMessage, setCameraMessage] = useState("")
@@ -61,6 +66,7 @@ export function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }
     if (!isOpen) {
       stopCamera()
       setReceipt(null)
+      setForceImportItemIndexes(new Set())
       setIsAnalyzing(false)
       setIsImporting(false)
       setCameraMessage("")
@@ -196,6 +202,7 @@ export function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }
 
     setIsAnalyzing(true)
     setReceipt(null)
+    setForceImportItemIndexes(new Set())
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS)
 
@@ -216,6 +223,7 @@ export function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }
       }
 
       setReceipt(data)
+      setForceImportItemIndexes(new Set())
       if (data.resumo?.alimentos === 0) {
         toast.warning("A nota foi lida, mas nenhum alimento foi identificado.")
       } else {
@@ -246,7 +254,11 @@ export function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }
           "Content-Type": "application/json",
           Authorization: "Bearer " + Cookies.get("token"),
         },
-        body: JSON.stringify({ ...source, dispensaId }),
+        body: JSON.stringify({
+          ...source,
+          dispensaId,
+          forceImportItemIndexes: Array.from(forceImportItemIndexes).sort((left, right) => left - right),
+        }),
       })
       const data = await readJsonResponse(response)
 
@@ -283,8 +295,24 @@ export function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }
   }
 
   const alimentos = receipt?.itens.filter((item) => item.isAlimento) ?? []
-  const ignorados = receipt?.itens.filter((item) => !item.isAlimento) ?? []
+  const ignorados =
+    receipt?.itens
+      .map((item, receiptIndex) => ({ ...item, receiptIndex }))
+      .filter((item) => !item.isAlimento) ?? []
+  const totalToImport = alimentos.length + forceImportItemIndexes.size
   const selectedDeviceLabel = videoDevices.find((device) => device.deviceId === selectedDeviceId)?.label
+
+  function toggleForceImport(receiptIndex: number) {
+    setForceImportItemIndexes((current) => {
+      const next = new Set(current)
+      if (next.has(receiptIndex)) {
+        next.delete(receiptIndex)
+      } else {
+        next.add(receiptIndex)
+      }
+      return next
+    })
+  }
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/55 p-3 sm:p-6">
@@ -361,7 +389,7 @@ export function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }
                     <option value="">Camera padrao</option>
                   ) : (
                     videoDevices.map((device, index) => (
-                      <option key={device.deviceId} value={device.deviceId}>
+                      <option key={`${device.deviceId || device.label || "camera"}-${index}`} value={device.deviceId}>
                         {device.label || `Camera ${index + 1}`}
                       </option>
                     ))
@@ -413,11 +441,12 @@ export function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }
           <section className="p-4 sm:p-6">
             {receipt ? (
               <div className="space-y-5">
-                <div className="grid gap-3 sm:grid-cols-4">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                   <Summary label="Mercado" value={receipt.mercadoNome} />
                   <Summary label="Itens" value={String(receipt.resumo.totalItens)} />
                   <Summary label="Alimentos" value={String(receipt.resumo.alimentos)} />
                   <Summary label="Ignorados" value={String(receipt.resumo.ignorados)} />
+                  <Summary label="Selecionados" value={String(forceImportItemIndexes.size)} />
                 </div>
 
                 <ItemTable
@@ -433,6 +462,9 @@ export function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }
                   items={ignorados}
                   emptyText="Nenhum item ignorado."
                   muted
+                  selectable
+                  selectedIndexes={forceImportItemIndexes}
+                  onToggle={toggleForceImport}
                 />
               </div>
             ) : (
@@ -455,11 +487,11 @@ export function FiscalQrScannerModal({ dispensaId, isOpen, onClose, onImported }
           <Button
             type="button"
             onClick={importReceipt}
-            disabled={!receipt || alimentos.length === 0 || isImporting}
+            disabled={!receipt || totalToImport === 0 || isImporting}
             className="h-10 bg-green-600 text-white hover:bg-green-700"
           >
             {isImporting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Enviar alimentos para dispensa
+            Enviar {totalToImport} item(ns) para dispensa
           </Button>
         </div>
       </div>
@@ -534,12 +566,18 @@ function ItemTable({
   items,
   emptyText,
   muted,
+  selectable,
+  selectedIndexes,
+  onToggle,
 }: {
   title: string
   icon: ReactNode
-  items: ReceiptItem[]
+  items: SelectableReceiptItem[]
   emptyText: string
   muted?: boolean
+  selectable?: boolean
+  selectedIndexes?: Set<number>
+  onToggle?: (receiptIndex: number) => void
 }) {
   return (
     <div>
@@ -551,6 +589,7 @@ function ItemTable({
         <table className="w-full min-w-[560px] text-sm">
           <thead className="sticky top-0 bg-[#f8fafc] text-xs uppercase text-[#62748e]">
             <tr>
+              {selectable && <th className="px-3 py-2 text-left font-semibold">Inserir</th>}
               <th className="px-3 py-2 text-left font-semibold">Item</th>
               <th className="px-3 py-2 text-right font-semibold">Qtd</th>
               <th className="px-3 py-2 text-right font-semibold">Unit.</th>
@@ -560,7 +599,27 @@ function ItemTable({
           <tbody>
             {items.length > 0 ? (
               items.map((item, index) => (
-                <tr key={`${item.codigo ?? item.nomeOriginal}-${index}`} className="border-t border-[#f1f5f9]">
+                <tr
+                  key={`${item.receiptIndex ?? index}-${item.codigo ?? item.nomeOriginal}`}
+                  className="border-t border-[#f1f5f9]"
+                >
+                  {selectable && (
+                    <td className="px-3 py-2">
+                      <label className="inline-flex items-center gap-2 text-xs font-semibold text-green-700">
+                        <input
+                          type="checkbox"
+                          checked={item.receiptIndex !== undefined && selectedIndexes?.has(item.receiptIndex)}
+                          onChange={() => {
+                            if (item.receiptIndex !== undefined) {
+                              onToggle?.(item.receiptIndex)
+                            }
+                          }}
+                          className="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-600"
+                        />
+                        Sim
+                      </label>
+                    </td>
+                  )}
                   <td className={`px-3 py-2 ${muted ? "text-[#64748b]" : "text-[#1d293d]"}`}>{item.nomeOriginal}</td>
                   <td className="px-3 py-2 text-right text-[#334155]">
                     {item.quantidade} {item.unidade}
@@ -573,7 +632,7 @@ function ItemTable({
               ))
             ) : (
               <tr>
-                <td colSpan={4} className="px-3 py-8 text-center text-[#90a1b9]">
+                <td colSpan={selectable ? 5 : 4} className="px-3 py-8 text-center text-[#90a1b9]">
                   {emptyText}
                 </td>
               </tr>

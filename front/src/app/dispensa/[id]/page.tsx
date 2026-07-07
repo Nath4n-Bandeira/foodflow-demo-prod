@@ -1,5 +1,21 @@
 "use client"
-import { Search, Settings, BarChart3, History, ChevronLeft, ChevronRight, Camera, QrCode, BadgeDollarSign } from "lucide-react"
+import {
+  Search,
+  Settings,
+  BarChart3,
+  History,
+  ChevronLeft,
+  ChevronRight,
+  Camera,
+  QrCode,
+  BadgeDollarSign,
+  CalendarDays,
+  Package,
+  Scale,
+  Tag,
+  Trash2,
+  X,
+} from "lucide-react"
 import EditItemModal from "@/src/app/components/modals/editItemmodal"
 import { PantryAssistantModal } from "@/src/app/components/PantryAssistantModal"
 import { useEffect, useState, useCallback } from "react"
@@ -113,9 +129,17 @@ export default function DispensaPage() {
 
   async function handleDeleteItem(id: number) {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_URL_API}/alimentos/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_URL_API}/alimentos/${id}`, {
         method: "DELETE",
+        headers: {
+          Authorization: "Bearer " + Cookies.get("token"),
+        },
       })
+
+      if (!response.ok) {
+        throw new Error("Erro ao deletar item")
+      }
+
       setAlimentos((prev) => prev.filter((item) => item.id !== id))
       handleCloseDetails()
       toast.success("Item deletado com sucesso!", {
@@ -155,6 +179,55 @@ export default function DispensaPage() {
   }
 
   const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7f50", "#a28fd0", "#ffb6b9", "#c6e2ff"]
+
+  function formatDate(value?: string | null) {
+    if (!value) return "Nao informada"
+
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return "Nao informada"
+
+    return date.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    })
+  }
+
+  function getExpirationInfo(value?: string | null) {
+    if (!value) {
+      return {
+        label: "Sem validade",
+        className: "bg-slate-100 text-slate-700 border-slate-200",
+      }
+    }
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const expirationDate = new Date(value)
+    expirationDate.setHours(0, 0, 0, 0)
+
+    const daysUntilExpiration = Math.ceil((expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+
+    if (daysUntilExpiration < 0) {
+      return {
+        label: `Vencido ha ${Math.abs(daysUntilExpiration)} dia(s)`,
+        className: "bg-red-50 text-red-700 border-red-200",
+      }
+    }
+
+    if (daysUntilExpiration <= 7) {
+      return {
+        label: `Vence em ${daysUntilExpiration} dia(s)`,
+        className: "bg-amber-50 text-amber-700 border-amber-200",
+      }
+    }
+
+    return {
+      label: "Validade ok",
+      className: "bg-green-50 text-green-700 border-green-200",
+    }
+  }
 
   const alimentosFiltrados = alimentos.filter((alimento) =>
     alimento.nome.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -516,38 +589,113 @@ export default function DispensaPage() {
         )}
 
         {alimentoSelecionado && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white p-6 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl border border-[#e2e8f0]">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm"
+            onClick={handleCloseDetails}
+          >
+            <div
+              className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+              onClick={(event) => event.stopPropagation()}
+            >
               <button
+                type="button"
                 onClick={handleCloseDetails}
-                className="float-right font-bold text-[#90a1b9] hover:text-[#1d293d]"
+                className="absolute right-4 top-4 rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                aria-label="Fechar detalhes do alimento"
               >
-                ✕
+                <X className="h-5 w-5" />
               </button>
-              <h2 className="text-2xl font-bold text-[#1d293d] mb-4">{alimentoSelecionado.nome}</h2>
-              <p className="mb-2 text-[#444444]">
+              <div className="border-b border-slate-100 bg-slate-50 px-5 py-5 pr-14 sm:px-6">
+                <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                  <Package className="h-3.5 w-3.5" />
+                  Item da dispensa
+                </div>
+                <h2 className="truncate text-xl font-bold text-[#1d293d] sm:text-2xl">{alimentoSelecionado.nome}</h2>
+                <p className="mt-1 text-sm text-slate-500">Codigo #{alimentoSelecionado.id}</p>
+              </div>
+
+              <div className="space-y-5 px-5 py-5 sm:px-6">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border border-slate-200 bg-white p-4">
+                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-500">
+                      <Scale className="h-4 w-4 text-green-600" />
+                      Quantidade
+                    </div>
+                    <p className="text-lg font-semibold text-[#1d293d]">
+                      {alimentoSelecionado.peso} {alimentoSelecionado.unidadeTipo}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-200 bg-white p-4">
+                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-500">
+                      <Tag className="h-4 w-4 text-green-600" />
+                      Unidade
+                    </div>
+                    <p className="text-lg font-semibold text-[#1d293d]">{alimentoSelecionado.unidadeTipo}</p>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-200 bg-white p-4">
+                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-500">
+                      <Package className="h-4 w-4 text-green-600" />
+                      Perecivel
+                    </div>
+                    <span
+                      className={`inline-flex rounded-full border px-3 py-1 text-sm font-semibold ${
+                        alimentoSelecionado.perecivel === "SIM"
+                          ? "border-amber-200 bg-amber-50 text-amber-700"
+                          : "border-slate-200 bg-slate-100 text-slate-700"
+                      }`}
+                    >
+                      {alimentoSelecionado.perecivel || "Nao informado"}
+                    </span>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-200 bg-white p-4">
+                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-500">
+                      <CalendarDays className="h-4 w-4 text-green-600" />
+                      Validade
+                    </div>
+                    <p className="text-sm font-semibold text-[#1d293d]">{formatDate(alimentoSelecionado.validade)}</p>
+                    <span
+                      className={`mt-2 inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${
+                        getExpirationInfo(alimentoSelecionado.validade).className
+                      }`}
+                    >
+                      {getExpirationInfo(alimentoSelecionado.validade).label}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-green-100 bg-green-50 p-4 text-sm text-green-800">
+                  Use as acoes abaixo para editar os dados do alimento ou remove-lo da dispensa.
+                </div>
+              </div>
+              <h2 className="hidden">{alimentoSelecionado.nome}</h2>
+              <p className="hidden">
                 <strong>ID:</strong> {alimentoSelecionado.id}
               </p>
-              <p className="mb-2 text-[#444444]">
+              <p className="hidden">
                 <strong>Peso:</strong> {alimentoSelecionado.peso} {alimentoSelecionado.unidadeTipo}
               </p>
-              <p className="mb-2 text-[#444444]">
+              <p className="hidden">
                 <strong>Tipo de Unidade:</strong> {alimentoSelecionado.unidadeTipo}
               </p>
               {alimentoSelecionado.perecivel && (
-                <p className="mb-4 text-[#444444]">
+                <p className="hidden">
                   <strong>Perecível:</strong> {alimentoSelecionado.perecivel}
                 </p>
               )}
 
-              <div className="flex gap-3 mt-4">
+              <div className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-end sm:px-6">
                 <EditItemModal id={Number(alimentoSelecionado?.id)} dispensaId={Number(dispensaId)} />
                 <button
+                  type="button"
                   onClick={() => {
                     if (alimentoSelecionado) handleDeleteItem(alimentoSelecionado.id)
                   }}
-                  className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl transition-colors"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-red-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-red-700"
                 >
+                  <Trash2 className="h-4 w-4" />
                   Deletar
                 </button>
               </div>
@@ -556,33 +704,108 @@ export default function DispensaPage() {
         )}
 
         {showConfigForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white p-6 rounded-2xl max-w-md w-full shadow-xl border border-[#e2e8f0]">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm"
+            onClick={() => setShowConfigForm(false)}
+          >
+            <div
+              className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+              onClick={(event) => event.stopPropagation()}
+            >
               <button
+                type="button"
                 onClick={() => setShowConfigForm(false)}
-                className="float-right font-bold text-[#90a1b9] hover:text-[#1d293d]"
+                className="absolute right-4 top-4 rounded-full p-2 text-[0px] text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                aria-label="Fechar configuracoes da dispensa"
               >
+                <X className="h-5 w-5" />
                 ✕
               </button>
 
-              <h2 className="text-xl font-bold text-[#1d293d] mb-4">Configurações da Dispensa</h2>
+              <h2 className="hidden">Configuracoes da Dispensa</h2>
+
+              <div className="border-b border-slate-100 bg-slate-50 px-5 py-5 pr-14 sm:px-6">
+                <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                  <Settings className="h-3.5 w-3.5" />
+                  Configuracoes
+                </div>
+                <h2 className="truncate text-xl font-bold text-[#1d293d] sm:text-2xl">
+                  {dispensa?.nome || "Dispensa"}
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">Ajustes e dados principais da dispensa.</p>
+              </div>
+
+              <div className="space-y-5 px-5 py-5 sm:px-6">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border border-slate-200 bg-white p-4">
+                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-500">
+                      <Package className="h-4 w-4 text-green-600" />
+                      Itens cadastrados
+                    </div>
+                    <p className="text-lg font-semibold text-[#1d293d]">{alimentos.length}</p>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-200 bg-white p-4">
+                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-500">
+                      <Tag className="h-4 w-4 text-green-600" />
+                      Participantes
+                    </div>
+                    <p className="text-lg font-semibold text-[#1d293d]">{funcionario.length}</p>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-200 bg-white p-4">
+                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-500">
+                      <CalendarDays className="h-4 w-4 text-green-600" />
+                      Criada em
+                    </div>
+                    <p className="text-sm font-semibold text-[#1d293d]">{formatDate(dispensa?.createdAt)}</p>
+                  </div>
+
+                  <div className="rounded-xl border border-slate-200 bg-white p-4">
+                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-500">
+                      <Settings className="h-4 w-4 text-green-600" />
+                      Temperatura
+                    </div>
+                    <span
+                      className={`inline-flex rounded-full border px-3 py-1 text-sm font-semibold ${
+                        dispensa?.monitorarTemperatura
+                          ? "border-green-200 bg-green-50 text-green-700"
+                          : "border-slate-200 bg-slate-100 text-slate-700"
+                      }`}
+                    >
+                      {dispensa?.monitorarTemperatura ? "Monitorando" : "Desativada"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-800">
+                  Excluir a dispensa remove seus itens, historico de uso, convites e dados vinculados.
+                </div>
+              </div>
 
               {dispensa ? (
-                <p className="text-[#444444] mb-4">
+                <p className="hidden">
                   <strong>Nome:</strong> {dispensa.nome}
                 </p>
               ) : (
-                <p className="text-sm text-[#90a1b9] mb-4">Carregando nome da dispensa...</p>
+                <p className="hidden">Carregando nome da dispensa...</p>
               )}
 
-              <button
-                onClick={() => {
-                  if (dispensaId) handleDeletePage(Number(dispensaId))
-                }}
-                className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl transition-colors"
-              >
-                Deletar Dispensa
-              </button>
+              <div className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-end sm:px-6">
+                <Button type="button" variant="outline" onClick={() => setShowConfigForm(false)} className="h-10">
+                  Cancelar
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (dispensaId) handleDeletePage(Number(dispensaId))
+                  }}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-red-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-red-700"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Deletar Dispensa
+                </button>
+              </div>
             </div>
           </div>
         )}
